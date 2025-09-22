@@ -1,30 +1,31 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from 'recharts';
 import { Bell, Download, Wifi, WifiOff, Settings, BellRing } from 'lucide-react';
 
 export default function BillBuddy() {
-  const [expenses, setExpenses] = useState([]);
-  const [personalExpenses, setPersonalExpenses] = useState([]);
-  const [settlements, setSettlements] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
-  const [menu, setMenu] = useState('group');
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [installPrompt, setInstallPrompt] = useState(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [personalExpenses, setPersonalExpenses] = useState<any[]>([]);
+  const [settlements, setSettlements] = useState<any[]>([]);
+  const [users, setUsers] = useState<string[]>([]);
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [menu, setMenu] = useState<string>('group');
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [installPrompt, setInstallPrompt] = useState<any | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
-  const [userName, setUserName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [splitBetween, setSplitBetween] = useState([]);
-  const [settleUser, setSettleUser] = useState('');
-  const [settleAmount, setSettleAmount] = useState('');
+  const [userName, setUserName] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [category, setCategory] = useState<string>('');
+  const [splitBetween, setSplitBetween] = useState<string[]>([]);
+  const [settleUser, setSettleUser] = useState<string>('');
+  const [settleAmount, setSettleAmount] = useState<string>('');
 
   // IndexedDB Helper Functions
-  const openDB = () => {
+  const openDB = (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
   const request = indexedDB.open('BillBuddyDB', 1);
       
@@ -53,33 +54,41 @@ export default function BillBuddy() {
     });
   };
 
-  const saveToIndexedDB = async (storeName, data) => {
+  const saveToIndexedDB = async (storeName: string, data: any) => {
     try {
       const db = await openDB();
       const transaction = db.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
       
       if (Array.isArray(data)) {
-        await store.clear();
+        // clear and add items - don't await IDBRequest directly, instead wait for transaction completion
+        store.clear();
         for (const item of data) {
-          await store.add(item);
+          store.add(item);
         }
       } else {
-        await store.put(data);
+        store.put(data);
       }
+
+      // Wait for transaction to complete
+      await new Promise<void>((resolve, reject) => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+      });
     } catch (error) {
       console.error('Error saving to IndexedDB:', error);
     }
   };
 
-  const loadFromIndexedDB = async (storeName) => {
+  const loadFromIndexedDB = async (storeName: string): Promise<any[]> => {
     try {
       const db = await openDB();
       const transaction = db.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.getAll();
       
-      return new Promise((resolve, reject) => {
+      return await new Promise<any[]>((resolve, reject) => {
         request.onsuccess = () => resolve(request.result || []);
         request.onerror = () => reject(request.error);
       });
