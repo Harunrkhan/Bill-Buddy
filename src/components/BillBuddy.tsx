@@ -18,7 +18,7 @@ interface BillBuddyDB extends DBSchema {
 const DB_NAME = 'BillBuddyDB'
 const DB_VERSION = 1
 
-export default function BillBuddy(){
+export default function BillBuddy(): JSX.Element {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [personalExpenses, setPersonalExpenses] = useState<PersonalExpense[]>([])
   const [settlements, setSettlements] = useState<Settlement[]>([])
@@ -40,8 +40,8 @@ export default function BillBuddy(){
   const [settleAmount, setSettleAmount] = useState<string>('')
 
   // idb helper
-  const getDB = async () => openDB<BillBuddyDB>(DB_NAME, DB_VERSION, {
-    upgrade(db){
+  const getDB = async () => openDB<any>(DB_NAME, DB_VERSION, {
+    upgrade(db: any){
       if (!db.objectStoreNames.contains('expenses')) db.createObjectStore('expenses', { keyPath: 'id', autoIncrement: true })
       if (!db.objectStoreNames.contains('personalExpenses')) db.createObjectStore('personalExpenses', { keyPath: 'id', autoIncrement: true })
       if (!db.objectStoreNames.contains('settlements')) db.createObjectStore('settlements', { keyPath: 'id', autoIncrement: true })
