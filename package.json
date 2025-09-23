@@ -1,5 +1,5 @@
 {
-  "homepage": "https://Harunrkhan.github.io/Bill-Buddy/",
+  "homepage": "https://Harunrkhan.github.io/Bill-Buddy",
 
   "name": "billbuddy",
   "version": "0.1.0",
@@ -24,6 +24,7 @@
     "@vitejs/plugin-react": "^4.2.0"
   }
 }
+
 
 
 
